@@ -1,0 +1,267 @@
+@import url('https://fonts.googleapis.com/css?family=Didact+Gothic&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    @apply h-full;
+  }
+  
+  body {
+    @apply fixed w-full h-full select-none text-gray-800 dark:text-dark-text;
+  }
+}
+
+@layer components {
+  /* Navbar styles */
+  .navbar {
+    @apply flex justify-between items-center w-full px-4 py-3 z-20 fixed top-0 left-0 right-0 transition-colors duration-300;
+  }
+  
+  .navbar-left, .navbar-right {
+    @apply flex items-center gap-6;
+  }
+  
+  .a4-reference {
+    @apply cursor-pointer text-gray-800 dark:text-dark-text transition-colors duration-300 font-medium text-sm ml-3;
+  }
+  
+  .a4-reference span {
+    @apply text-primary font-semibold;
+  }
+  
+  .auto-toggle-wrapper {
+    @apply flex flex-col items-center px-3;
+  }
+  
+  /* Theme toggle button */
+  .theme-toggle {
+    @apply flex items-center justify-center p-2 bg-gray-200 dark:bg-dark-surface text-gray-800 dark:text-dark-text rounded-full w-10 h-10 transition-colors duration-300 hover:opacity-90 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary;
+  }
+  
+  .frequency-bars {
+    @apply fixed bottom-0;
+    margin-top: 64px; /* Add top margin for navbar */
+  }
+  
+  .meter {
+    @apply fixed left-0 right-0 bottom-1/2 w-full md:w-[400px] h-1/3 mx-auto mb-[5vh];
+    margin-top: 64px; /* Add top margin for navbar */
+  }
+  
+  .meter-pointer {
+    @apply w-[2px] h-full transform origin-bottom absolute right-1/2 transition-all duration-700 ease-in-out;
+    will-change: transform, background-color;
+  }
+  
+  .meter-dot {
+    @apply w-[10px] h-[10px] bg-gray-800 dark:bg-dark-text rounded-full absolute bottom-[-5px] right-1/2 mr-[-4px];
+  }
+  
+  .meter-scale {
+    @apply w-[1px] h-full origin-bottom transition-transform duration-200 box-border border-t-[10px] border-solid border-gray-800 dark:border-dark-text absolute right-1/2;
+  }
+  
+  .meter-scale-strong {
+    @apply w-[2px] border-t-[20px];
+  }
+  
+  /* Frequency display */
+  .frequency-display {
+    @apply fixed top-1/2 left-0 right-0 text-center mt-12;
+  }
+  
+  .frequency {
+    @apply text-[32px] text-gray-800 dark:text-dark-text transition-colors duration-300;
+  }
+  
+  .frequency span {
+    @apply text-[50%] ml-[0.25em];
+  }
+  
+  .current-note {
+    @apply text-4xl font-bold text-primary mt-2;
+  }
+  
+  /* Logo container */
+  .logo-container {
+    @apply flex items-center justify-center;
+    z-index: 10;
+  }
+  
+  .logo-container img {
+    @apply transition-transform duration-300;
+  }
+  
+  .logo-container img:hover {
+    @apply transform scale-110;
+  }
+  
+  /* Auto Toggle Button */
+  .auto-toggle-container {
+    @apply flex flex-col items-center justify-center space-y-1;
+    z-index: 10;
+  }
+  
+  .auto-toggle-label {
+    @apply text-xs font-medium text-center mb-1;
+  }
+  
+  .auto-toggle-button {
+    @apply relative inline-flex items-center justify-start p-0 h-6 w-12 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors duration-300;
+    background: rgba(156, 163, 175, 0.3);
+  }
+  
+  .auto-toggle-track {
+    @apply absolute inset-0 rounded-full transition-colors duration-300;
+  }
+  
+  .auto-toggle-button.active .auto-toggle-track {
+    @apply bg-green-500 bg-opacity-50;
+  }
+  
+  .auto-toggle-thumb {
+    @apply absolute h-5 w-5 rounded-full bg-white flex items-center justify-center transition-all duration-300 shadow-md;
+    transform: translateX(2px);
+  }
+  
+  .auto-toggle-button.active .auto-toggle-thumb {
+    @apply text-white bg-green-600 transform;
+    transform: translateX(calc(100% - 2px));
+  }
+  
+  /* Note Selection Button styles */
+  .note-buttons {
+    @apply z-10 backdrop-blur-sm bg-white/70 dark:bg-dark-background/70 p-3 rounded-xl shadow-lg;
+  }
+  
+  .note-buttons button {
+    @apply font-semibold min-w-[50px] text-center transition-all transform hover:scale-105 active:scale-95;
+  }
+  
+  /* Tuning accuracy indicator */
+  .tuning-indicator {
+    @apply fixed w-auto left-1/2 transform -translate-x-1/2 text-center px-5 py-2 rounded-full font-bold text-sm z-10;
+    top: calc(50% - 5vh);
+  }
+  
+  .tuning-indicator.perfect {
+    @apply bg-green-500 dark:bg-green-400 text-white;
+  }
+  
+  .tuning-indicator.close {
+    @apply bg-yellow-500 dark:bg-yellow-400 text-white;
+  }
+  
+  .tuning-indicator.far {
+    @apply bg-red-500 dark:bg-red-400 text-white;
+  }
+  
+  /* Footer attribution */
+  .footer-attribution {
+    @apply fixed left-2 transform -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400 z-10;
+    top: 50%;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+  }
+  
+  .footer-attribution a {
+    @apply text-primary hover:underline;
+  }
+  
+  /* Logo Glitch Effect Styles - Updated for embedded SVG */
+  #logo text {
+    @apply text-gray-800 fill-current;
+  }
+  
+  .dark #logo text {
+    @apply text-white fill-current;
+  }
+
+  #logo {
+    fill: black;
+  }
+
+  .dark #logo {
+    fill: white;
+  }
+
+  #layer_2, #layer_3 {
+    @apply fill-primary;
+    pointer-events: all;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .animate-glitch1 {
+    animation: glitch1 2s infinite;
+  }
+  
+  .animate-glitch2 {
+    animation: glitch2 2s infinite;
+  }
+  
+  #layer_2 {
+    animation: glitch-1 ease-out 1.8s infinite;
+  }
+  
+  #layer_3 {
+    animation: glitch-2 ease-out 1.8s infinite;
+  }
+  
+  @keyframes glitch-1 {
+    0% { transform: translate(-40px,-50px) }
+    5% { transform: translate(-40px,-20px) }
+    10% { transform: translate(-20px,-50px) }
+    15% { transform: translate(-10px,-50px) }
+    20% { transform: translate(-10px,-40px) }
+    25% { transform: translate(-20px,-50px) }
+    30% { transform: translate(-30px,-20px) }
+    35% { transform: translate(-20px,-50px) }
+    40% { transform: translate(-40px,-30px) }
+    45% { transform: translate(-60px,-50px) }
+    50% { transform: translate(-30px,-50px) }
+    55% { transform: translate(-60px,-10px) }
+    60% { transform: translate(-60px,-10px) }
+    65% { transform: translate(-40px,-50px) }
+    70% { transform: translate(-10px,-10px) }
+    75% { transform: translate(-60px,-20px) }
+    80% { transform: translate(-50px,-50px) }
+    85% { transform: translate(-50px,-40px) }
+    90% { transform: translate(-60px,-20px) }
+    95% { transform: translate(-30px,-30px) }
+    100% { transform: translate(-40px,-20px) }
+  }
+  
+  @keyframes glitch-2 {
+    0% { transform: translate(20px,30px) }
+    5% { transform: translate(10px,10px) }
+    10% { transform: translate(10px,40px) }
+    15% { transform: translate(20px,10px) }
+    20% { transform: translate(10px,30px) }
+    25% { transform: translate(30px,30px) }
+    30% { transform: translate(50px,20px) }
+    35% { transform: translate(40px,20px) }
+    40% { transform: translate(50px,50px) }
+    45% { transform: translate(20px,20px) }
+    50% { transform: translate(50px,10px) }
+    55% { transform: translate(30px,30px) }
+    60% { transform: translate(10px,10px) }
+    65% { transform: translate(30px,50px) }
+    70% { transform: translate(10px,40px) }
+    75% { transform: translate(50px,50px) }
+    80% { transform: translate(40px,50px) }
+    85% { transform: translate(20px,20px) }
+    90% { transform: translate(30px,30px) }
+    95% { transform: translate(40px,40px) }
+    100% { transform: translate(40px,20px) }
+  }
+  
+  /* SVG text styles */
+  #logo text, #layer_2 text, #layer_3 text {
+    font-size: 296.85px;
+    font-family: DidactGothic-Regular, Didact Gothic;
+  }
+} 

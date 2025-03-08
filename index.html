@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GTuner - Guisso</title>
+    <meta name="description" content="Guitar tuner app built with Vue.js and Tailwind CSS" />
+    <!-- Load aubio and sweetalert scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aubiojs@0.1.1/build/aubio.min.js"></script>
+    <!-- Initialize theme -->
+    <script>
+      // Check for saved theme preference or use dark theme as default
+      const theme = localStorage.getItem('theme') || 'dark';
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+  </head>
+  <body class="bg-gray-100 dark:bg-dark-background transition-colors duration-300">
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html> 
