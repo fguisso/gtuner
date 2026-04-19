@@ -17,8 +17,8 @@
     "icons": "node scripts/gen-icons.mjs"
   },
   "dependencies": {
+    "pinia": "^2.3.1",
     "pitchy": "^4.1.0",
-    "sweetalert2": "^11.10.0",
     "vue": "^3.4.0"
   },
   "devDependencies": {

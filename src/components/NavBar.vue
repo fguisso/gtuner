@@ -1,0 +1,34 @@
+<script setup lang="ts">
+import AutoToggle from './AutoToggle.vue'
+import ThemeToggle from './ThemeToggle.vue'
+import A4Reference from './A4Reference.vue'
+</script>
+
+<template>
+  <nav class="navbar">
+    <div class="navbar-left">
+      <div class="logo-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 849.6 329.92" class="w-20 h-20">
+          <g id="layer_2">
+            <text transform="translate(5.52 250.66)">gtuner</text>
+            <polygon points="60.34 198.02 84.8 150.91 107.45 198.02 60.34 198.02" />
+            <polygon />
+          </g>
+          <g id="layer_3">
+            <text transform="translate(5.52 250.66)">gtuner</text>
+            <polygon points="60.34 198.02 84.8 150.91 107.45 198.02 60.34 198.02" />
+          </g>
+          <g id="logo">
+            <text transform="translate(5.52 250.66)">gtuner</text>
+            <polygon points="60.34 198.02 84.8 150.91 107.45 198.02 60.34 198.02" />
+          </g>
+        </svg>
+      </div>
+      <A4Reference />
+    </div>
+    <div class="navbar-right">
+      <AutoToggle />
+      <ThemeToggle />
+    </div>
+  </nav>
+</template>

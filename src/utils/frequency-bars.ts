@@ -16,7 +16,7 @@ export class FrequencyBars {
     this.canvas.height = window.innerHeight / 2
   }
 
-  update(frequencyData: Uint8Array): void {
+  update(frequencyData: Uint8Array<ArrayBufferLike>): void {
     const ctx = this.ctx
     const barWidth = 2
     const barGap = 1
