@@ -1,70 +1,82 @@
-# GTuner - Guitar Tuner App
+# gtuner
 
-A modern guitar tuner web application built with Vue.js and Tailwind CSS, featuring a sleek dark theme.
+Afinador web para violão e ukulele. Instalável como PWA, funciona offline,
+detecta tom em tempo real sem backend.
 
-## Features
+## Stack
 
-- Real-time pitch detection
-- Visual tuning meter
-- Frequency visualization
-- Customizable A4 reference frequency
-- Dark theme with Tailwind CSS
-- Modern, responsive UI
-
-## Technologies Used
-
-- Vue.js 3 (Composition API)
+- Vue 3 + TypeScript (script setup, composables, Pinia)
+- Vite 5 com `vite-plugin-pwa` (Workbox, offline-first)
+- Detecção de pitch com [pitchy](https://github.com/ianprime0509/pitchy) rodando dentro de um `AudioWorklet` (fora da main thread)
 - Tailwind CSS
-- Vite for fast development
-- Aubio.js for audio processing
-- SweetAlert2 for notifications
+- Vitest para testes unitários
 
-## Installation
+## Scripts
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
+npm run dev         # dev server (porta 5173)
+npm run build       # build de produção (vue-tsc + vite build)
+npm run preview     # servir o build
+npm run typecheck   # vue-tsc --noEmit
+npm run test        # vitest run
+npm run lint        # eslint .
+npm run format      # prettier --write
+npm run icons       # regenera PNGs a partir de public/icons/icon.svg
 ```
 
-## GitHub Pages Deployment
+Base path padrão: `/gtuner/` (ajustado no `vite.config.ts`). Pode ser
+sobrescrito em build com `VITE_BASE=/meu-path/ npm run build`.
 
-This project is set up with GitHub Actions for automatic deployment to GitHub Pages.
+## Arquitetura
 
-1. Push your changes to the main branch
-2. GitHub Actions will automatically build and deploy your app
-3. Your app will be available at `https://[your-username].github.io/gtuner/`
-
-To manually deploy:
-
-```bash
-# Build for production
-npm run build
-
-# Deploy to GitHub Pages (if you're using gh-pages package)
-npm run deploy
+```
+src/
+├── App.vue                  # shell que compõe os componentes
+├── main.ts                  # bootstrap + Pinia + registro do SW
+├── pwa.ts                   # registro do service worker
+├── audio/
+│   ├── engine.ts            # TunerEngine: estados, permissão, analyser
+│   ├── pitch-worklet.ts     # AudioWorkletProcessor com pitchy (self-contained)
+│   └── smoother.ts          # median filter + gates (clarity, rms, faixa)
+├── composables/
+│   ├── useTuner.ts          # reatividade em cima do TunerEngine
+│   ├── useTheme.ts
+│   ├── useReferenceTone.ts  # oscilador para tocar a nota alvo
+│   ├── useToast.ts
+│   └── usePwaInstall.ts     # beforeinstallprompt / standalone
+├── stores/
+│   └── settings.ts          # Pinia: A4, tema, afinação, modo auto
+├── lib/
+│   ├── instruments.ts       # presets de violão e ukulele
+│   └── cents.ts             # classificação de afinação e rotação do ponteiro
+├── components/              # NavBar, TunerMeter, NoteDisplay, ...
+└── utils/
+    ├── notes.ts             # MIDI ↔ nome/octave/freq (SPN)
+    └── frequency-bars.ts    # canvas renderer do espectro
 ```
 
-## Usage
+## PWA
 
-1. Allow microphone access when prompted
-2. Play a note on your guitar
-3. The app will detect the note and show how close it is to being in tune
-4. Adjust your guitar strings until the meter is centered
+O build gera `sw.js`, `workbox-*.js`, `manifest.webmanifest` e os ícones em
+`dist/icons/`. Tudo é precached, incluindo o chunk do worklet, então o app
+funciona 100% offline depois da primeira visita.
 
-## Development
+Para instalar: abra a app pelo Chrome/Edge/Safari em HTTPS, o banner de
+install aparece quando `beforeinstallprompt` dispara. No iOS, use o botão
+"Adicionar à tela de início" do Safari.
 
-This project was migrated from vanilla JavaScript to Vue.js with Tailwind CSS. The code is organized as follows:
+## Afinações suportadas
 
-- `src/App.vue` - Main Vue component
-- `src/utils/` - Utility functions for tuner, notes, and frequency bars
-- `src/style.css` - Tailwind CSS styles
+**Violão**: Padrão (EADGBE), Drop D, DADGAD
+**Ukulele**: Padrão GCEA (re-entrante), Low G
 
-The online tuner based on web audio api: [https://qiuxiang.github.io/tuner/app](https://qiuxiang.github.io/tuner/app/).
+Novas afinações podem ser adicionadas em `src/lib/instruments.ts` sem
+mexer em mais nada.
 
-![](https://user-images.githubusercontent.com/1709072/30374834-e23d0bc2-98b8-11e7-91ae-8ac37bfd24b2.png)
+## Deploy
+
+GitHub Pages é o destino padrão (workflow em `.github/workflows/deploy.yml`).
+Para outro host, ajuste `VITE_BASE`.
+
+Baseado em [@qiuxiang/tuner](https://github.com/qiuxiang/tuner).

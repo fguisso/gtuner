@@ -14,7 +14,7 @@ defineProps<Props>()
 
 <template>
   <div>
-    <div v-if="showStatus" :class="['tuning-indicator', accuracy]">
+    <div v-if="showStatus" :class="['tuning-indicator', accuracy]" role="status" aria-live="polite">
       {{
         accuracy === 'perfect'
           ? 'Perfeito!'
