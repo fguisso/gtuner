@@ -1,0 +1,54 @@
+import { onMounted, onUnmounted, ref } from 'vue'
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
+export function usePwaInstall() {
+  const deferredEvent = ref<BeforeInstallPromptEvent | null>(null)
+  const canInstall = ref(false)
+  const installed = ref(false)
+  const isStandalone = ref(false)
+
+  const onBeforeInstallPrompt = (event: Event) => {
+    event.preventDefault()
+    deferredEvent.value = event as BeforeInstallPromptEvent
+    canInstall.value = true
+  }
+
+  const onAppInstalled = () => {
+    installed.value = true
+    canInstall.value = false
+    deferredEvent.value = null
+  }
+
+  const checkStandalone = () => {
+    const mql = window.matchMedia?.('(display-mode: standalone)')
+    const nav = window.navigator as Navigator & { standalone?: boolean }
+    isStandalone.value = Boolean(mql?.matches || nav.standalone)
+  }
+
+  const promptInstall = async (): Promise<'accepted' | 'dismissed' | 'unavailable'> => {
+    const ev = deferredEvent.value
+    if (!ev) return 'unavailable'
+    await ev.prompt()
+    const choice = await ev.userChoice
+    deferredEvent.value = null
+    canInstall.value = false
+    return choice.outcome
+  }
+
+  onMounted(() => {
+    checkStandalone()
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
+    window.addEventListener('appinstalled', onAppInstalled)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt)
+    window.removeEventListener('appinstalled', onAppInstalled)
+  })
+
+  return { canInstall, installed, isStandalone, promptInstall }
+}
