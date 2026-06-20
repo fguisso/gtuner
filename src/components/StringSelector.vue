@@ -40,12 +40,22 @@ function isSelected(str: InstrumentString): boolean {
     <div v-for="str in tuning.strings" :key="str.value" class="flex flex-col items-stretch gap-1">
       <button
         type="button"
-        class="rounded-lg bg-gray-200 px-2 py-1 text-gray-800 transition-colors duration-300 hover:bg-gray-300 dark:bg-dark-surface dark:text-dark-text dark:hover:bg-gray-700"
-        :class="{ 'ring-2 ring-primary': isSelected(str) }"
+        class="note-button rounded-lg px-2 py-1"
+        :class="
+          isSelected(str)
+            ? 'bg-primary text-white shadow-md ring-2 ring-primary/40 ring-offset-1 ring-offset-white dark:ring-offset-dark-background'
+            : 'bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-dark-surface dark:text-dark-text dark:hover:bg-gray-700'
+        "
+        :aria-pressed="isSelected(str)"
         @click="onClick(str)"
       >
         <div class="text-sm font-semibold">{{ str.name }}{{ str.octave }}</div>
-        <div class="text-xs text-gray-600 dark:text-gray-400">{{ freq(str).toFixed(1) }} Hz</div>
+        <div
+          class="text-xs"
+          :class="isSelected(str) ? 'text-white/80' : 'text-gray-600 dark:text-gray-400'"
+        >
+          {{ freq(str).toFixed(1) }} Hz
+        </div>
       </button>
       <button
         type="button"

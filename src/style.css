@@ -44,7 +44,7 @@
 
   .navbar-left,
   .navbar-right {
-    @apply flex items-center gap-6;
+    @apply flex items-center gap-3;
   }
 
   .a4-reference {
@@ -56,12 +56,19 @@
   }
 
   .auto-toggle-wrapper {
-    @apply flex flex-col items-center px-3;
+    @apply flex flex-col items-center px-1;
+  }
+
+  /* Instrument + tuning picker, pinned just below the fixed navbar so it never
+     overlaps the logo/toggles row on narrow screens. */
+  .instrument-picker-row {
+    @apply fixed inset-x-0 z-30 flex justify-center px-2;
+    top: 3.75rem;
   }
 
   /* Theme toggle button */
   .theme-toggle {
-    @apply flex items-center justify-center p-2 bg-gray-200 dark:bg-dark-surface text-gray-800 dark:text-dark-text rounded-full w-10 h-10 transition-colors duration-300 hover:opacity-90 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary;
+    @apply flex items-center justify-center p-2 bg-gray-200 dark:bg-dark-surface text-gray-800 dark:text-dark-text rounded-full w-10 h-10 transition-colors duration-300 hover:opacity-90 shadow-md hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary;
   }
 
   .frequency-bars {
@@ -70,25 +77,56 @@
   }
 
   .meter {
-    @apply fixed left-0 right-0 bottom-1/2 w-full md:w-[400px] h-1/3 mx-auto mb-[5vh];
-    margin-top: 64px; /* Add top margin for navbar */
+    @apply fixed left-0 right-0 bottom-1/2 w-full md:w-[400px] h-1/4 mx-auto mb-[4vh];
   }
 
+  /* The needle is data-smoothed already, so the transform transition is kept
+     short (just enough to feel fluid) while the colour eases gently. */
   .meter-pointer {
-    @apply w-[2px] h-full transform origin-bottom absolute right-1/2 transition-all duration-700 ease-in-out;
-    will-change: transform, background-color;
+    @apply w-[3px] h-[82%] origin-bottom absolute right-1/2 rounded-full opacity-100;
+    transition:
+      transform 110ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 300ms ease,
+      opacity 300ms ease;
+    will-change: transform;
   }
 
   .meter-dot {
-    @apply w-[10px] h-[10px] bg-gray-800 dark:bg-dark-text rounded-full absolute bottom-[-5px] right-1/2 mr-[-4px];
+    @apply w-[14px] h-[14px] bg-gray-800 dark:bg-dark-text rounded-full absolute bottom-[-7px] right-1/2 mr-[-6px] transition-colors duration-300;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6);
   }
 
-  .meter-scale {
-    @apply w-[1px] h-full origin-bottom transition-transform duration-200 box-border border-t-[10px] border-solid border-gray-800 dark:border-dark-text absolute right-1/2;
+  .dark .meter-dot {
+    box-shadow: 0 0 0 4px rgba(26, 32, 44, 0.6);
   }
 
-  .meter-scale-strong {
-    @apply w-[2px] border-t-[20px];
+  /* Radial tick scale — full-height bars pivoting at the dot, drawing a mark
+     at the outer arc via their top border. */
+  .meter-tick {
+    @apply w-px h-full origin-bottom absolute right-1/2 box-border;
+  }
+
+  .meter-tick-minor {
+    @apply border-t-[9px] border-solid border-gray-300 dark:border-gray-700;
+  }
+
+  .meter-tick-major {
+    @apply w-[2px] border-t-[15px] border-solid border-gray-400 dark:border-gray-500;
+  }
+
+  .meter-tick-center {
+    @apply border-green-500 dark:border-green-400;
+  }
+
+  .meter-cents {
+    /* Sits just below the pivot dot — the needle only ever points upward, so
+       the readout can never be crossed by it. */
+    @apply absolute left-1/2 -translate-x-1/2 text-xl font-bold tabular-nums transition-colors duration-300;
+    top: calc(100% + 0.6rem);
+  }
+
+  .meter-cents-unit {
+    @apply text-base font-medium ml-0.5 opacity-70;
   }
 
   /* Frequency display */
@@ -133,7 +171,7 @@
   }
 
   .auto-toggle-button {
-    @apply relative inline-flex items-center justify-start p-0 h-6 w-12 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors duration-300;
+    @apply relative inline-flex items-center justify-start p-0 h-6 w-12 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors duration-300;
     background: rgba(156, 163, 175, 0.3);
   }
 
@@ -146,13 +184,14 @@
   }
 
   .auto-toggle-thumb {
-    @apply absolute h-5 w-5 rounded-full bg-white flex items-center justify-center transition-all duration-300 shadow-md;
-    transform: translateX(2px);
+    @apply absolute top-1/2 h-5 w-5 rounded-full bg-white flex items-center justify-center transition-transform duration-300 shadow-md;
+    transform: translate(2px, -50%);
   }
 
   .auto-toggle-button.active .auto-toggle-thumb {
-    @apply text-white bg-green-600 transform;
-    transform: translateX(calc(100% - 2px));
+    @apply text-white bg-green-600;
+    /* track is 48px wide, thumb 20px → flush right with a 2px margin */
+    transform: translate(26px, -50%);
   }
 
   /* Note Selection Button styles */
@@ -168,7 +207,8 @@
   /* Tuning accuracy indicator */
   .tuning-indicator {
     @apply fixed w-auto left-1/2 transform -translate-x-1/2 text-center px-5 py-2 rounded-full font-bold text-sm z-10;
-    top: calc(50% - 5vh);
+    /* Sits in the gap below the note readout, clear of the gauge needle. */
+    top: calc(50% + 24vh);
   }
 
   .tuning-indicator.perfect {

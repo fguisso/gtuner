@@ -56,9 +56,14 @@ onMounted(() => {
     <template v-else>
       <FrequencyBars :analyser="analyser" />
 
-      <TunerMeter :rotation="tuner.meterRotation" :accuracy="tuner.accuracy" />
+      <TunerMeter
+        :rotation="tuner.meterRotation"
+        :accuracy="tuner.accuracy"
+        :cents="tuner.centsOffset"
+        :active="tuner.detection != null"
+      />
 
-      <div class="mt-3 flex justify-center">
+      <div class="instrument-picker-row">
         <InstrumentPicker />
       </div>
 

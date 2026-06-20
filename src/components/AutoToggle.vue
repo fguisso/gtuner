@@ -8,10 +8,10 @@ const { autoMode } = storeToRefs(settings)
 
 <template>
   <div class="auto-toggle-wrapper">
-    <div class="auto-toggle-label dark:text-dark-text text-gray-800">Detecção auto</div>
+    <div class="auto-toggle-label dark:text-dark-text text-gray-800">Auto</div>
     <button
       type="button"
-      class="auto-toggle-button mt-2"
+      class="auto-toggle-button"
       :class="{ active: autoMode }"
       :aria-checked="autoMode"
       role="switch"

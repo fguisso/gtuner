@@ -45,4 +45,25 @@ describe('PitchSmoother', () => {
     s.reset()
     expect(s.push(ok(440))).toBeNull()
   })
+
+  it('eases toward small drifts instead of jumping', () => {
+    const s = new PitchSmoother({ windowSize: 3, emaAlpha: 0.25 })
+    s.push(ok(440))
+    s.push(ok(440))
+    expect(s.push(ok(440))).toBe(440) // settled
+    s.push(ok(446)) // median still 440 here
+    const out = s.push(ok(446)) as number // median now 446; EWMA glides toward it
+    expect(out).toBeGreaterThan(440)
+    expect(out).toBeLessThan(446)
+  })
+
+  it('snaps immediately on a large pitch change (string switch)', () => {
+    const s = new PitchSmoother({ windowSize: 3, jumpCents: 45 })
+    s.push(ok(82)) // low E
+    s.push(ok(82))
+    s.push(ok(82))
+    s.push(ok(110)) // median still 82
+    const out = s.push(ok(110)) as number // median flips to 110, jump → snap
+    expect(out).toBeCloseTo(110, 0)
+  })
 })
