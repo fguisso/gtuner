@@ -35,12 +35,16 @@ function isSelected(str: InstrumentString): boolean {
 
 <template>
   <div
-    class="note-buttons fixed bottom-8 left-1/2 flex w-full max-w-xl -translate-x-1/2 transform justify-center gap-1 px-2"
+    class="note-buttons fixed bottom-2 left-1/2 flex w-full max-w-xl -translate-x-1/2 transform justify-center gap-1 px-2"
   >
-    <div v-for="str in tuning.strings" :key="str.value" class="flex flex-col items-stretch gap-1">
+    <div
+      v-for="str in tuning.strings"
+      :key="str.value"
+      class="flex min-w-0 flex-1 flex-col items-stretch gap-1"
+    >
       <button
         type="button"
-        class="note-button rounded-lg px-2 py-1"
+        class="note-button w-full rounded-lg px-1 py-1"
         :class="
           isSelected(str)
             ? 'bg-primary text-white shadow-md ring-2 ring-primary/40 ring-offset-1 ring-offset-white dark:ring-offset-dark-background'
@@ -49,9 +53,9 @@ function isSelected(str: InstrumentString): boolean {
         :aria-pressed="isSelected(str)"
         @click="onClick(str)"
       >
-        <div class="text-sm font-semibold">{{ str.name }}{{ str.octave }}</div>
+        <div class="text-sm font-semibold leading-tight">{{ str.name }}{{ str.octave }}</div>
         <div
-          class="text-xs"
+          class="whitespace-nowrap text-[10px] leading-tight sm:text-xs"
           :class="isSelected(str) ? 'text-white/80' : 'text-gray-600 dark:text-gray-400'"
         >
           {{ freq(str).toFixed(1) }} Hz
@@ -59,7 +63,7 @@ function isSelected(str: InstrumentString): boolean {
       </button>
       <button
         type="button"
-        class="rounded-md bg-gray-100 py-0.5 text-xs text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-400 dark:hover:bg-zinc-700"
+        class="w-full rounded-md bg-gray-100 py-0.5 text-xs text-gray-600 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-400 dark:hover:bg-zinc-700"
         :aria-label="`Tocar nota ${str.name}${str.octave}`"
         :aria-pressed="isPlaying"
         @click="(ev) => onPlay(str, ev)"

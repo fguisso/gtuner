@@ -63,6 +63,10 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     base,
+    preview: {
+      // Allow tunnelled hosts (e.g. ngrok) to reach the preview server.
+      allowedHosts: true,
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

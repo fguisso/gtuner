@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Self-hosted so the SVG logo renders correctly offline (no Google Fonts CDN). */
+@font-face {
+  font-family: 'Didact Gothic';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/didact-gothic-latin.woff2') format('woff2');
+}
+
 @layer base {
   html,
   body {
@@ -196,12 +205,12 @@
 
   /* Note Selection Button styles */
   .note-buttons {
-    @apply z-10 backdrop-blur-sm bg-white/70 dark:bg-dark-background/70 p-3 rounded-xl shadow-lg;
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    @apply z-10 backdrop-blur-sm bg-white/70 dark:bg-dark-background/70 p-2 sm:p-3 rounded-xl shadow-lg;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
   }
 
   .note-buttons button {
-    @apply font-semibold min-w-[50px] text-center transition-all transform hover:scale-105 active:scale-95;
+    @apply font-semibold text-center transition-all transform hover:scale-105 active:scale-95;
   }
 
   /* Tuning accuracy indicator */
@@ -223,10 +232,13 @@
     @apply bg-red-500 dark:bg-red-400 text-white;
   }
 
-  /* Footer attribution */
+  /* Footer attribution — vertical credit pinned to the left margin. Bounded
+     between the navbar and the note bar (and kept below it in the stack) so the
+     text never runs on top of the string buttons. */
   .footer-attribution {
-    @apply fixed left-2 transform -translate-y-1/2 text-xs text-gray-500 dark:text-gray-400 z-10;
-    top: 50%;
+    @apply fixed left-2 flex justify-center text-xs text-gray-500 dark:text-gray-400 z-0;
+    top: 4rem;
+    bottom: calc(7rem + env(safe-area-inset-bottom));
     writing-mode: vertical-lr;
     transform: rotate(180deg);
   }

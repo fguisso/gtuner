@@ -5,16 +5,35 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
+const DISMISSED_KEY = 'gtuner:install-dismissed'
+
 export function usePwaInstall() {
   const deferredEvent = ref<BeforeInstallPromptEvent | null>(null)
   const canInstall = ref(false)
   const installed = ref(false)
   const isStandalone = ref(false)
 
+  const wasDismissed = () => {
+    try {
+      return localStorage.getItem(DISMISSED_KEY) === '1'
+    } catch {
+      return false
+    }
+  }
+
+  const dismiss = () => {
+    canInstall.value = false
+    try {
+      localStorage.setItem(DISMISSED_KEY, '1')
+    } catch {
+      /* storage unavailable — keep it dismissed for this session only */
+    }
+  }
+
   const onBeforeInstallPrompt = (event: Event) => {
     event.preventDefault()
     deferredEvent.value = event as BeforeInstallPromptEvent
-    canInstall.value = true
+    if (!wasDismissed()) canInstall.value = true
   }
 
   const onAppInstalled = () => {
@@ -50,5 +69,5 @@ export function usePwaInstall() {
     window.removeEventListener('appinstalled', onAppInstalled)
   })
 
-  return { canInstall, installed, isStandalone, promptInstall }
+  return { canInstall, installed, isStandalone, promptInstall, dismiss }
 }
