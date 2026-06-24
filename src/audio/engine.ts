@@ -1,13 +1,8 @@
-import PitchWorkletUrl from './pitch-worklet.ts?worker&url'
+import { PitchDetector } from 'pitchy'
+import { MicInput, SILENCE_PEAK } from './mic-input'
 import { PitchSmoother, type SmootherOptions } from './smoother'
 
 export type TunerState = 'idle' | 'requesting' | 'granted' | 'denied' | 'error'
-
-export interface PitchEvent {
-  pitch: number
-  clarity: number
-  rms: number
-}
 
 export interface SmoothedPitch {
   /** Smoothed pitch in Hz. */
@@ -21,34 +16,44 @@ export type PitchHandler = (p: SmoothedPitch) => void
 export type StateHandler = (state: TunerState, error?: Error) => void
 
 export interface EngineOptions {
-  bufferSize?: number
   fftSize?: number
   smoother?: SmootherOptions
 }
 
-const DEFAULT_BUFFER_SIZE = 2048
 const DEFAULT_FFT_SIZE = 2048
 
+/**
+ * Drives pitch detection off a {@link MicInput} on the main thread via
+ * requestAnimationFrame. MicInput owns the cross-engine capture (raw PCM out of
+ * a ScriptProcessorNode, which is the only reader that works on iOS Safari); the
+ * engine just runs pitchy on each fresh frame, smooths the result, and reports.
+ */
 export class TunerEngine {
   state: TunerState = 'idle'
-  analyser?: AnalyserNode
 
-  private readonly bufferSize: number
   private readonly fftSize: number
   private readonly smoother: PitchSmoother
+  private readonly mic: MicInput
 
-  private audioContext?: AudioContext
-  private stream?: MediaStream
-  private source?: MediaStreamAudioSourceNode
-  private workletNode?: AudioWorkletNode
+  private detector?: PitchDetector<Float32Array<ArrayBuffer>>
+  private buffer?: Float32Array<ArrayBuffer>
+  private rafId: number | null = null
+
+  // detection runs on rAF but is throttled to spare the main thread on phones
+  private lastDetectAt = 0
+  private readonly detectIntervalMs = 22 // ~45 Hz cap
 
   private onPitch: PitchHandler | null = null
   private onState: StateHandler | null = null
 
   constructor(opts: EngineOptions = {}) {
-    this.bufferSize = opts.bufferSize ?? DEFAULT_BUFFER_SIZE
     this.fftSize = opts.fftSize ?? DEFAULT_FFT_SIZE
     this.smoother = new PitchSmoother(opts.smoother)
+    this.mic = new MicInput({ bufferSize: this.fftSize, fftSize: this.fftSize })
+  }
+
+  get analyser(): AnalyserNode | undefined {
+    return this.mic.analyser
   }
 
   onPitchEvent(handler: PitchHandler): void {
@@ -64,52 +69,11 @@ export class TunerEngine {
     this.setState('requesting')
 
     try {
-      const Ctx: typeof AudioContext =
-        window.AudioContext ??
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-      if (!Ctx) throw new Error('AudioContext is not supported in this browser')
-
-      const ctx = new Ctx()
-      this.audioContext = ctx
-
-      // Create the analyser eagerly so consumers can read `engine.analyser`
-      // immediately after `start()` is called (useful for visualizations).
-      const analyser = ctx.createAnalyser()
-      analyser.fftSize = this.fftSize
-      analyser.smoothingTimeConstant = 0.6
-      this.analyser = analyser
-
-      await ctx.audioWorklet.addModule(PitchWorkletUrl)
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        },
-      })
-      this.stream = stream
-
-      // iOS Safari requires an explicit resume after user gesture.
-      if (ctx.state === 'suspended') await ctx.resume()
-
-      const source = ctx.createMediaStreamSource(stream)
-      this.source = source
-      source.connect(analyser)
-
-      const worklet = new AudioWorkletNode(ctx, 'pitch-processor', {
-        processorOptions: { bufferSize: this.bufferSize },
-        numberOfInputs: 1,
-        numberOfOutputs: 0,
-      })
-      source.connect(worklet)
-      this.workletNode = worklet
-
-      worklet.port.onmessage = (event: MessageEvent<PitchEvent>) => {
-        this.handlePitch(event.data)
-      }
-
+      await this.mic.start()
+      this.detector = PitchDetector.forFloat32Array(this.fftSize)
+      this.buffer = new Float32Array(new ArrayBuffer(this.fftSize * Float32Array.BYTES_PER_ELEMENT))
       this.setState('granted')
+      this.loop()
     } catch (err) {
       const error = err as Error & { name?: string }
       if (error.name === 'NotAllowedError' || error.name === 'SecurityError') {
@@ -127,10 +91,36 @@ export class TunerEngine {
     this.setState('idle')
   }
 
-  private handlePitch(raw: PitchEvent): void {
-    const smoothed = this.smoother.push(raw)
-    if (smoothed == null) return
-    this.onPitch?.({ frequency: smoothed, clarity: raw.clarity, rms: raw.rms })
+  private loop(): void {
+    const raf = globalThis.requestAnimationFrame
+    if (!raf) return
+    this.rafId = raf((now) => {
+      if (now - this.lastDetectAt >= this.detectIntervalMs) {
+        this.lastDetectAt = now
+        this.detect()
+      }
+      if (this.state === 'granted') this.loop()
+    })
+  }
+
+  private detect(): void {
+    const detector = this.detector
+    const buffer = this.buffer
+    if (!detector || !buffer) return
+
+    const reading = this.mic.read(buffer)
+    // No new audio frame since the last tick — hold the needle, skip the work.
+    if (!reading.fresh) return
+    // Genuinely quiet — hold the needle instead of chasing background noise.
+    if (reading.peak < SILENCE_PEAK) return
+
+    let sumSquares = 0
+    for (let i = 0; i < buffer.length; i++) sumSquares += buffer[i] * buffer[i]
+    const rms = Math.sqrt(sumSquares / buffer.length)
+
+    const [pitch, clarity] = detector.findPitch(buffer, this.mic.sampleRate)
+    const smoothed = this.smoother.push({ pitch, clarity, rms })
+    if (smoothed != null) this.onPitch?.({ frequency: smoothed, clarity, rms })
   }
 
   private setState(state: TunerState, err?: Error): void {
@@ -139,23 +129,14 @@ export class TunerEngine {
   }
 
   private async cleanup(): Promise<void> {
-    this.stream?.getTracks().forEach((t) => t.stop())
-    this.workletNode?.port.close()
-    this.workletNode?.disconnect()
-    this.source?.disconnect()
-    this.analyser?.disconnect()
-    if (this.audioContext && this.audioContext.state !== 'closed') {
-      try {
-        await this.audioContext.close()
-      } catch {
-        // ignore — context may already be closing
-      }
+    if (this.rafId != null) {
+      globalThis.cancelAnimationFrame?.(this.rafId)
+      this.rafId = null
     }
-    this.stream = undefined
-    this.source = undefined
-    this.workletNode = undefined
-    this.analyser = undefined
-    this.audioContext = undefined
+    await this.mic.stop()
+    this.detector = undefined
+    this.buffer = undefined
+    this.lastDetectAt = 0
     this.smoother.reset()
   }
 }

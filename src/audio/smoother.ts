@@ -29,8 +29,8 @@ export class PitchSmoother {
 
   constructor(opts: SmootherOptions = {}) {
     this.windowSize = opts.windowSize ?? 6
-    this.minClarity = opts.minClarity ?? 0.9
-    this.minRms = opts.minRms ?? 0.01
+    this.minClarity = opts.minClarity ?? 0.85
+    this.minRms = opts.minRms ?? 0.006
     this.minFreq = opts.minFreq ?? 60
     this.maxFreq = opts.maxFreq ?? 1500
     this.emaAlpha = opts.emaAlpha ?? 0.25
